@@ -1,0 +1,79 @@
+# Deploy workflow — triggered on every push to main.
+#
+# Deployments:
+#   Frontend → Vercel        (requires: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID)
+#   Backend  → Railway       (requires: RAILWAY_TOKEN)
+#
+# ── One-time setup ──────────────────────────────────────────────
+#
+# Vercel secrets  (GitHub repo → Settings → Secrets and variables → Actions):
+#   VERCEL_TOKEN      — https://vercel.com/account/tokens  (create a new token)
+#   VERCEL_ORG_ID     — run `vercel link` locally, then copy from .vercel/project.json
+#   VERCEL_PROJECT_ID — same .vercel/project.json file
+#
+#   Note: vercel.json in the repo root tells Vercel how to build and serve the SPA.
+#
+# Railway secrets:
+#   RAILWAY_TOKEN     — https://railway.app/account/tokens  (create a new token)
+#
+#   Note: Connect this GitHub repo to a Railway project first:
+#         Railway Dashboard → New Project → Deploy from GitHub Repo
+#         The service MUST be named "backend" (or set RAILWAY_SERVICE variable below).
+#
+# Optional variable (GitHub repo → Settings → Secrets and variables → Actions → Variables):
+#   RAILWAY_SERVICE   — Railway service name (default: "backend")
+#
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Frontend — deploy to Vercel (Vercel runs the build via vercel.json)
+  # ──────────────────────────────────────────────────────────────
+  deploy-frontend:
+    name: Deploy Frontend (Vercel)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel project metadata & environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel (production)
+        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  # ──────────────────────────────────────────────────────────────
+  # Backend — deploy to Railway
+  # ──────────────────────────────────────────────────────────────
+  deploy-backend:
+    name: Deploy Backend (Railway)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install --global @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --service ${{ vars.RAILWAY_SERVICE || 'backend' }} --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

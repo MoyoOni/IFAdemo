@@ -4,11 +4,11 @@
     "builder": "NIXPACKS",
     "nixpacksPlan": {
       "setup": {
-        "nodejs": "20.x"
+        "nodejs": "20"
       },
       "phases": {
         "install": {
-          "command": "cd backend && npm ci"
+          "command": "npm ci"
         },
         "build": {
           "command": "cd backend && npm run build"
@@ -18,7 +18,6 @@
   },
   "deploy": {
     "startCommand": "cd backend && node dist/backend/src/main.js",
-    "workdir": "backend",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 100
   }
