@@ -1524,7 +1524,7 @@ export class AdminService {
   async getAuditStats() {
     const totalLogs = await this.prisma.auditLog.count();
     const recentLogs = await this.prisma.auditLog.count({
-      where: { timestamp: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
+      where: { createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
     });
     return { totalLogs, recentLogs };
   }

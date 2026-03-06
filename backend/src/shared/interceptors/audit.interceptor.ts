@@ -8,8 +8,7 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { AuditService } from '../services/audit.service';
-import { User } from '@prisma/client';
+import { AuditService, AuditLogEntry } from '../services/audit.service';
 
 export interface AuditMetadata {
   resourceType: string;
@@ -48,7 +47,7 @@ export class AuditInterceptor implements NestInterceptor {
       tap(async (response) => {
         try {
           // Determine the user performing the action
-          const user = req.user as User;
+          const user = req.user as { id: string };
           if (!user) {
             return; // Skip audit if no authenticated user
           }
@@ -66,20 +65,20 @@ export class AuditInterceptor implements NestInterceptor {
           }
 
           // Prepare audit log entry
-          const auditEntry = {
-            adminId: user.id,
+          const auditEntry: AuditLogEntry = {
+            userId: user.id,
             action,
-            entityType: auditMetadata.resourceType,
-            entityId: resourceId || '',
-            payload: {
-              previousValues: this.extractPreviousValues(req, method),
-              newValues: this.extractNewValues(req, method, response),
+            resourceType: auditMetadata.resourceType,
+            resourceId,
+            previousValues: this.extractPreviousValues(req, method),
+            newValues: this.extractNewValues(req, method, response),
+            ipAddress: this.getClientIp(req),
+            userAgent: req.headers['user-agent'],
+            metadata: {
               method,
               url: req.url,
               statusCode: res.statusCode,
             },
-            ipAddress: this.getClientIp(req),
-            userAgent: req.headers['user-agent'],
           };
 
           // Log the audit entry

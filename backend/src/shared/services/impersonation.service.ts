@@ -42,12 +42,12 @@ export class ImpersonationService {
 
     // Log the impersonation action
     await this.auditService.logAction({
-      adminId: adminUser.id,
+      userId: adminUser.id,
       action: 'IMPERSONATE_USER',
-      entityType: 'USER',
-      entityId: targetUserId,
-      reason,
-      payload: {
+      resourceType: 'USER',
+      resourceId: targetUserId,
+      metadata: {
+        reason,
         impersonatedUserId: targetUserId,
         impersonation: true,
       },

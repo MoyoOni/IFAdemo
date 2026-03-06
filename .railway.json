@@ -11,7 +11,7 @@
           "command": "npm ci"
         },
         "build": {
-          "command": "cd backend && npm run build"
+          "command": "npm run -w @ile-ase/common build && cd backend && npx prisma generate && npm run build"
         }
       }
     }
