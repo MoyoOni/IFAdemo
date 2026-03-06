@@ -84,6 +84,7 @@ model User {
   castVotes                 AdvisoryVoteCast[]       @relation("CastVotes")
   proposedVotes             AdvisoryVote[]           @relation("ProposedVotes")
   templesJoined             Temple[]                 @relation("TempleMembers")
+  auditLogs                 AuditLog[]
 
   @@map("users")
 }
